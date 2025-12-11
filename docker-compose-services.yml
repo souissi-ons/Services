@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # --- BASE DE DONNÉES ---
+  postgres-global:
+    image: postgres:15-alpine
+    container_name: university-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=ons
+      - POSTGRES_DB=cursus_db
+    volumes:
+      - postgres_global_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - university-network
+
+  # --- SERVICE 1 : CURSUS ---
+  cursus-service:
+    build: 
+      context: ./graphql-cursus-service
+    image: graphql-cursus-service:1.0.0
+    container_name: service-cursus
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://university-postgres:5432/cursus_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=ons
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      postgres-global:
+        condition: service_healthy
+    networks:
+      - university-network
+
+  # --- SERVICE 2 : RESERVATION ---
+  reservation-service:
+    build:
+      context: ./rest-reservation-service
+    image: rest-reservation-service:1.0.0
+    container_name: service-reservation
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://university-postgres:5432/reservation_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=ons
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      postgres-global:
+        condition: service_healthy
+    networks:
+      - university-network
+
+  # --- SERVICE 3 : AUTH ---
+  auth-service:
+    build:
+      context: ./rest-auth-service
+    image: rest-auth-service:1.0.0
+    container_name: service-auth
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://university-postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=ons
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      postgres-global:
+        condition: service_healthy
+    networks:
+      - university-network
+
+  # --- SERVICE 4 : ARCHIVES ---
+  archives-service:
+    build:
+      context: ./soap-archives-service
+    image: soap-archives-service:1.0.0
+    container_name: service-archives
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_URL=jdbc:postgresql://university-postgres:5432/archives_db
+      - DB_USER=postgres
+      - DB_PASSWORD=ons
+    depends_on:
+      postgres-global:
+        condition: service_healthy
+    networks:
+      - university-network
+
+  # --- SERVICE 5 : NOTIFICATION ---
+  notification-service:
+    build:
+      context: ./grpc-notification-service
+    image: grpc-notification-service:1.0.0
+    container_name: service-notification
+    ports:
+      - "9090:9090"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://university-postgres:5432/notification_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=ons
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+    depends_on:
+      postgres-global:
+        condition: service_healthy
+    networks:
+      - university-network
+
+volumes:
+  postgres_global_data:
+
+networks:
+  university-network:
+    name: university-network
+    driver: bridge

@@ -1,0 +1,6 @@
+com\university\archives\models\Certification.class
+com\university\archives\models\Transcript$Grade.class
+com\university\archives\service\ArchivesService.class
+com\university\archives\SoapArchivesService.class
+com\university\archives\models\Diplome.class
+com\university\archives\models\Transcript.class

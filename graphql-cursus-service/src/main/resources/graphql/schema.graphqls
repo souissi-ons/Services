@@ -1,0 +1,237 @@
+type Query {
+    studentById(id: ID!): Student
+    studentByStudentId(studentId: String!): Student
+    allStudents: [Student!]!
+    studentsByLevel(level: String!): [Student!]!
+    studentsBySpeciality(speciality: String!): [Student!]!
+
+    professorByProfessorId(professorId: String!): Professor
+    allProfessors: [Professor!]!
+    
+    courseById(id: ID!): Course
+    courseByCode(code: String!): Course
+    allCourses: [Course!]!
+    coursesByLevel(level: String!): [Course!]!
+    
+    moduleById(id: ID!): Module
+    moduleByCode(code: String!): Module
+    allModules: [Module!]!
+    modulesByCourse(courseId: ID!): [Module!]!
+    modulesBySemester(semester: String!): [Module!]!
+    modulesByProfessor(professor: String!): [Module!]!
+    
+    enrollmentById(id: ID!): Enrollment
+    enrollmentsByStudent(studentId: ID!): [Enrollment!]!
+    enrollmentsByModule(moduleId: ID!): [Enrollment!]!
+    enrollmentsByYear(academicYear: String!): [Enrollment!]!
+}
+
+type Mutation {
+    # CRUD Etudiants
+    createStudent(input: StudentInput!): Student!
+    updateStudent(id: ID!, input: StudentInput!): Student!
+    deleteStudent(id: ID!): Boolean!
+
+    # CRUD Professeurs
+    createProfessor(input: ProfessorInput!): Professor!
+    updateProfessor(id: ID!, input: ProfessorInput!): Professor!
+    deleteProfessor(id: ID!): Boolean!
+
+    # CRUD Cours (Course/Filière)
+    createCourse(input: CourseInput!): Course!
+    updateCourse(id: ID!, input: CourseInput!): Course!
+    deleteCourse(id: ID!): Boolean!
+
+    # CRUD Modules (Module/Classe)
+    createModule(input: ModuleInput!): Module!
+    updateModule(id: ID!, input: ModuleInput!): Module!
+    deleteModule(id: ID!): Boolean!
+
+    # Inscriptions et Affectations
+    enrollStudent(studentId: ID!, moduleId: ID!, academicYear: String!): Enrollment!
+    updateEnrollmentStatus(id: ID!, status: EnrollmentStatus!): Enrollment!
+    addGrade(enrollmentId: ID!, gradeInput: GradeInput!): Enrollment!
+    affectProfessorToModule(moduleCode: String!, professorId: String!): Module!
+    registerStudentToCourse(moduleCode: String!, studentId: String!): Module!
+}
+
+# --- TYPES ---
+
+type Student {
+    id: ID!
+    studentId: String!
+    firstName: String!
+    lastName: String!
+    email: String
+    birthDate: String
+    level: String!
+    speciality: String!
+    enrollmentDate: String
+    enrollments: [Enrollment!]!
+    gpa: Float
+    totalCredits: Int
+    status: StudentStatus!
+}
+
+type Professor {
+    id: ID!
+    professorId: String! 
+    firstName: String!
+    lastName: String!
+    email: String!
+    department: String!
+    status: ProfessorStatus!
+    modulesTaught: [Module!] 
+}
+
+type Course {
+    id: ID!
+    code: String!
+    name: String!
+    description: String
+    level: String!
+    speciality: String!
+    durationYears: Int
+    modules: [Module!]!
+    totalCredits: Int
+    coordinator: String
+    active: Boolean!
+}
+
+type Module {
+    id: ID!
+    code: String!
+    name: String!
+    description: String
+    course: Course!
+    semester: String!
+    credits: Int!
+    hours: Int
+    type: ModuleType!
+    professor: String
+    prerequisite: String
+    maxStudents: Int
+    mandatory: Boolean!
+    professorDetails: Professor
+}
+
+type Enrollment {
+    id: ID!
+    student: Student!
+    module: Module!
+    academicYear: String!
+    enrollmentDate: String!
+    grades: [Grade!]!
+    finalGrade: Float
+    status: EnrollmentStatus!
+    attendance: Int
+}
+
+type Grade {
+    id: ID!
+    type: GradeType!
+    score: Float!
+    coefficient: Float!
+    examDate: String
+    examiner: String
+    comments: String
+}
+
+
+input StudentInput {
+    studentId: String!
+    firstName: String!
+    lastName: String!
+    email: String
+    birthDate: String
+    level: String!
+    speciality: String!
+    status: StudentStatus
+}
+
+input ProfessorInput {
+    professorId: String!
+    firstName: String!
+    lastName: String!
+    email: String!
+    department: String!
+    status: ProfessorStatus
+}
+
+
+input CourseInput {
+    code: String!
+    name: String!
+    description: String
+    level: String!
+    speciality: String!
+    durationYears: Int
+    totalCredits: Int
+    coordinator: String
+    active: Boolean
+}
+
+
+input ModuleInput {
+    code: String!
+    name: String!
+    description: String
+    courseId: ID!       
+    semester: String!
+    credits: Int!
+    hours: Int
+    type: ModuleType!
+    professorId: String 
+    prerequisite: String
+    maxStudents: Int
+    mandatory: Boolean
+}
+
+input GradeInput {
+    type: GradeType!
+    score: Float!
+    coefficient: Float!
+    examDate: String
+    examiner: String
+    comments: String
+}
+
+# --- ENUMS ---
+
+enum StudentStatus {
+    ACTIVE
+    SUSPENDED
+    GRADUATED
+    DROPPED
+}
+
+enum ModuleType {
+    COURS
+    TD
+    TP
+    PROJET
+    STAGE
+}
+
+enum EnrollmentStatus {
+    ENROLLED
+    COMPLETED
+    FAILED
+    WITHDRAWN
+}
+
+enum GradeType {
+    CC
+    DS
+    EXAMEN
+    PROJET
+    TP
+    ORAL
+}
+
+enum ProfessorStatus {
+    FULL_TIME
+    PART_TIME
+    RESEARCHER
+    ADMINISTRATIVE
+}
