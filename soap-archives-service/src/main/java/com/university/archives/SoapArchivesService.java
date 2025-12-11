@@ -12,8 +12,7 @@ public class SoapArchivesService {
 	 public static void main(String[] args) {
 	        initializeDatabase();
 
-	        String url = "http://localhost:8081/archives";
-	        
+	        String url = "http://0.0.0.0:8081/archives";	        
 	        System.out.println("Démarrage du service SOAP Archives...");
 	        
 	        try {

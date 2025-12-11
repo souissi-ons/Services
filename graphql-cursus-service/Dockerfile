@@ -9,4 +9,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8083
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-global:5432/cursus_db
+ENV SPRING_DATASOURCE_USERNAME=postgres
+ENV SPRING_DATASOURCE_PASSWORD=password123
 ENTRYPOINT ["java", "-jar", "app.jar"]

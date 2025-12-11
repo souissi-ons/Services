@@ -34,9 +34,16 @@ public class GraphqlCursusServiceApplication {
                                    EnrollmentRepository enrollmentRepo,
                                    ProfessorRepository professorRepo) {
         return args -> {
-            if (courseRepo.count() > 0) {
-            }
+        	// AVANT (Probablement)
+        	if (courseRepo.count() > 0) {
+        	    return; // Si on a des cours, on saute l'initialisation
+        	}
 
+        	// APRÈS (Correction) : On vérifie le premier jeu de données inséré
+        	if (professorRepo.count() > 0) {
+        	    System.out.println("⚠️ Données de test déjà présentes. Initialisation ignorée.");
+        	    return;
+        	}
             System.out.println("🚀 Base vide détectée. Insertion des données de test...");
 
             Professor p1 = new Professor(null, "PROF001", "Ali", "Benali", "ali.benali@univ.tn", "Informatique", Professor.ProfessorStatus.FULL_TIME, null);
